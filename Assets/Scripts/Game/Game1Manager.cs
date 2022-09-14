@@ -35,12 +35,14 @@ namespace Photon.Pun.Demo.Asteroids
         [SerializeField] public GameObject BottomPanel;
         [SerializeField] public GameObject ReadyButton;
 
+        [SerializeField] public RawImage TestDrawingImage;
         [SerializeField] public Texture2D DrawingImage;
         [SerializeField] public Text reseivedText;
 
-        public Texture2D receivedTexture;
+        public Texture2D receivedTexture;//хуета
         public Text InfoText;
         public Text PlayerInputText;
+        public Text Stage3GuessInputText;
         public Button PlayerReadyButton;
         public Image PlayerReadyImage;
 
@@ -125,7 +127,6 @@ namespace Photon.Pun.Demo.Asteroids
                     }
                 });
             }
-
         }
 
 
@@ -279,7 +280,7 @@ namespace Photon.Pun.Demo.Asteroids
                 int Chapter = (int)PhotonNetwork.LocalPlayer.CustomProperties["Chapter"];
                 Debug.LogFormat("ЧАПТЕР: {0}", Chapter);
 
-
+                
                 switch (Chapter) //Устанавливаем главы игры, что включают в себя раунды
                 {
                     case 1: //Глава 1
@@ -296,16 +297,15 @@ namespace Photon.Pun.Demo.Asteroids
                             case 2:
                                 CountdownTimer.SetStartTime(100f);
                                 ShufflePlayers();//Перемешиваем список игроков перед началом их взаимодействия
+                                
+                                
+
                                 break;
 
 
                             case 3:
-
-                                
-                                if(subEventNumber < PhotonNetwork.CurrentRoom.PlayerCount)
+                                if (subEventNumber < PhotonNetwork.CurrentRoom.PlayerCount)
                                 {
-                                    Debug.Log("ЖОЖО");
-
                                     ShuffledPlayersToSend = ShuffledPlayers[ShuffledElement];
                                     Debug.LogFormat("Элементы: {0}, {1}", ShuffledElement, ShuffledPlayers[ShuffledElement]);
                                     if (subEventNumber < PhotonNetwork.CurrentRoom.PlayerCount-1)
@@ -313,35 +313,7 @@ namespace Photon.Pun.Demo.Asteroids
                                         ShuffledElement++;
                                     }
                                     subEventNumber++;
-                                    
 
-                                    //Определяем чья очередь сейчас показывать
-                                    foreach (Player player in PhotonNetwork.PlayerList)
-                                    {
-                                        if (player.ActorNumber.ToString() == ShuffledPlayers[ShuffledElement])
-                                        {
-
-                                            //photonView.RPC("SendPlayerTurnToShowContent", RpcTarget.All, ShuffledPlayers[ShuffledElement]);
-
-                                            //photonView.RPC("ShareInputWithPlayers", player);
-
-                                            
-                                            //Debug.LogFormat("ВЫЗЫВАЕМ ЧОТА: {0}", PhotonNetwork.PlayerList[int.Parse(ShuffledPlayers[ShuffledElement])].CustomProperties["InputData"].ToString());
-                                            
-
-
-
-                                            //PlayerInputText.text = PhotonNetwork.PlayerList[int.Parse(ShuffledPlayers[ShuffledElement])].CustomProperties["InputData"].ToString();
-                                            //ShuffledElement++;
-
-                                            
-
-
-
-
-                                        }
-
-                                    }
 
                                 }
 
@@ -510,6 +482,7 @@ namespace Photon.Pun.Demo.Asteroids
             return true;
         }
 
+
         private void OnCountdownTimerIsExpired()
         {
             
@@ -543,13 +516,13 @@ namespace Photon.Pun.Demo.Asteroids
 
 
         [PunRPC]
-        public void ShareInputWithPlayers()//test
+        public void ShareInputWithPlayers()//test(no)
         {
             _shareProperties["InputData"] = PlayerInputText.text;
             PhotonNetwork.LocalPlayer.SetCustomProperties(_shareProperties);
             Debug.LogFormat("Share is: {0}", _shareProperties["InputData"]);
+            Debug.LogError(gameObject);
         }
-
 
         [PunRPC]
         void ChatMessage(string fileName, byte[] content)
@@ -560,9 +533,8 @@ namespace Photon.Pun.Demo.Asteroids
 
         public void SendFile(string fileName, byte[] content)
         {
-            photonView.RPC(nameof(ChatMessage), RpcTarget.All, fileName, content);
+            photonView.RPC(nameof(ChatMessage), RpcTarget.Others, fileName, content);
         }
-
 
 
         [PunRPC]//test
@@ -574,7 +546,7 @@ namespace Photon.Pun.Demo.Asteroids
             receivedTexture.LoadImage(receivedByte);
 
         }
-        
+                                    //none
         //Сервер говорит чья очередь по списку показывать контент
         //Отправляется функция всем игрокам, а тот игрок, чьё имя совпадает со списком записывает в CustomProperties свой контент
         //Далее все игроки считывают контент этого игрока
@@ -600,6 +572,9 @@ namespace Photon.Pun.Demo.Asteroids
                 }
             }
         }
+
+
+
 
 
 
@@ -631,11 +606,19 @@ namespace Photon.Pun.Demo.Asteroids
                     BottomPanel.gameObject.SetActive(true);
                     break;
                 case 3:
+
                     Stage2.gameObject.SetActive(false);
-                    Stage3.gameObject.SetActive(true);
                     Transparent.gameObject.SetActive(false);
                     PaperBackground.gameObject.SetActive(false); PaperBackgroundTop.gameObject.SetActive(true);
                     BottomPanel.gameObject.SetActive(false);
+
+                    if (PhotonNetwork.LocalPlayer.ActorNumber != Int32.Parse(targetPlayerActorNumber))
+                    {
+                        
+                        Stage3.gameObject.SetActive(true);
+                        
+                    }
+                    
 
                     foreach (Player player in PhotonNetwork.PlayerList)
                     {
