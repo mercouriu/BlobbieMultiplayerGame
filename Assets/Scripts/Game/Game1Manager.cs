@@ -419,7 +419,7 @@ namespace Photon.Pun.Demo.Asteroids
         private void StartGame()
         {
             Debug.Log("StartGame!");
-
+            
 
             if (PhotonNetwork.IsMasterClient)
             {
@@ -514,6 +514,15 @@ namespace Photon.Pun.Demo.Asteroids
             PlayerReadyButton.image.enabled = !playerReady;
         }
 
+        public static void SaveImage(Texture2D image, string file_name)
+        {
+            string path = Application.dataPath + "/" + file_name;
+            System.IO.File.WriteAllBytes(path,
+                image.EncodeToPNG());
+            Debug.Log("Saved to " + path);
+        }
+
+
 
         [PunRPC]
         public void ShareInputWithPlayers()//test(no)
@@ -606,13 +615,13 @@ namespace Photon.Pun.Demo.Asteroids
                     BottomPanel.gameObject.SetActive(true);
                     break;
                 case 3:
-
+                    SaveImage(receivedTexture, "drawing_result.png");//можно оптимизировать, чтобы только один раз вызывалась
                     Stage2.gameObject.SetActive(false);
                     Transparent.gameObject.SetActive(false);
                     PaperBackground.gameObject.SetActive(false); PaperBackgroundTop.gameObject.SetActive(true);
                     BottomPanel.gameObject.SetActive(false);
 
-                    if (PhotonNetwork.LocalPlayer.ActorNumber != Int32.Parse(targetPlayerActorNumber))
+                    if (PhotonNetwork.LocalPlayer.ActorNumber != Int32.Parse(targetPlayerActorNumber))//ограничение ввода тому, чей сейчас ход
                     {
                         
                         Stage3.gameObject.SetActive(true);
