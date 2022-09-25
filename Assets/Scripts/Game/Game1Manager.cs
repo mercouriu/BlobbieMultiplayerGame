@@ -35,11 +35,10 @@ namespace Photon.Pun.Demo.Asteroids
         [SerializeField] public GameObject BottomPanel;
         [SerializeField] public GameObject ReadyButton;
 
-        [SerializeField] public RawImage TestDrawingImage;
         [SerializeField] public Texture2D DrawingImage;
         [SerializeField] public Text reseivedText;
 
-        public Texture2D receivedTexture;//хуета
+        public Texture2D DrawnTextureToSave;
         public Text InfoText;
         public Text PlayerInputText;
         public Text Stage3GuessInputText;
@@ -550,9 +549,9 @@ namespace Photon.Pun.Demo.Asteroids
         private void SendImage(Player player, byte[] receivedByte)
         {
             SendFile("Transparent", DrawingImage.EncodeToPNG());
-            receivedTexture = null;
-            receivedTexture = new Texture2D(1, 1);
-            receivedTexture.LoadImage(receivedByte);
+            DrawnTextureToSave = null;
+            DrawnTextureToSave = new Texture2D(1, 1);
+            DrawnTextureToSave.LoadImage(receivedByte);
 
         }
                                     //none
@@ -615,7 +614,7 @@ namespace Photon.Pun.Demo.Asteroids
                     BottomPanel.gameObject.SetActive(true);
                     break;
                 case 3:
-                    SaveImage(receivedTexture, "drawing_result.png");//можно оптимизировать, чтобы только один раз вызывалась
+                    SaveImage(DrawnTextureToSave, "drawing_result.png");//можно оптимизировать, чтобы только один раз вызывалась
                     Stage2.gameObject.SetActive(false);
                     Transparent.gameObject.SetActive(false);
                     PaperBackground.gameObject.SetActive(false); PaperBackgroundTop.gameObject.SetActive(true);
