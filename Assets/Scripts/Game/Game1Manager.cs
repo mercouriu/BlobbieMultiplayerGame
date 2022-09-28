@@ -36,6 +36,7 @@ namespace Photon.Pun.Demo.Asteroids
         [SerializeField] public GameObject ReadyButton;
 
         [SerializeField] public Texture2D DrawingImage;
+        [SerializeField] public RawImage DrawingImageRaw;
         [SerializeField] public Text reseivedText;
 
         public Texture2D DrawnTextureToSave;
@@ -520,8 +521,17 @@ namespace Photon.Pun.Demo.Asteroids
                 image.EncodeToPNG());
             Debug.Log("Saved to " + path);
         }
+        /*
+        [PunRPC]//test
+        private void SendImage(Player player, byte[] receivedByte)
+        {
+            SendFile("Transparent", DrawingImage.EncodeToPNG());
+            DrawnTextureToSave = null;
+            DrawnTextureToSave = new Texture2D(1, 1);
+            DrawnTextureToSave.LoadImage(receivedByte);
 
-
+        }
+        */
 
         [PunRPC]
         public void ShareInputWithPlayers()//test(no)
@@ -545,15 +555,7 @@ namespace Photon.Pun.Demo.Asteroids
         }
 
 
-        [PunRPC]//test
-        private void SendImage(Player player, byte[] receivedByte)
-        {
-            SendFile("Transparent", DrawingImage.EncodeToPNG());
-            DrawnTextureToSave = null;
-            DrawnTextureToSave = new Texture2D(1, 1);
-            DrawnTextureToSave.LoadImage(receivedByte);
-
-        }
+        
                                     //none
         //Сервер говорит чья очередь по списку показывать контент
         //Отправляется функция всем игрокам, а тот игрок, чьё имя совпадает со списком записывает в CustomProperties свой контент
@@ -582,7 +584,14 @@ namespace Photon.Pun.Demo.Asteroids
         }
 
 
-
+        [PunRPC]
+        public void SendingImage(byte[] receivedByte)
+        {
+            Texture2D tex = new Texture2D(1, 1);
+            tex.LoadImage(receivedByte);
+            DrawingImageRaw.texture = tex;
+            Debug.LogFormat("IMAGE 0", tex);
+        }
 
 
 
@@ -637,6 +646,8 @@ namespace Photon.Pun.Demo.Asteroids
                         {
                             reseivedText.text = player.CustomProperties["InputData"].ToString();
                             Debug.LogFormat("Share (received) is: {0}", reseivedText.text);
+                            //SendingImage(DrawnTextureToSave.EncodeToPNG());
+                            photonView.RPC("SendingImage", RpcTarget.All, DrawnTextureToSave.EncodeToPNG());
                         }
                     }
 
