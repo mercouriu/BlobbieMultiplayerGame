@@ -623,21 +623,30 @@ namespace Photon.Pun.Demo.Asteroids
                     BottomPanel.gameObject.SetActive(true);
                     break;
                 case 3:
-                    SaveImage(DrawnTextureToSave, "drawing_result.png");//можно оптимизировать, чтобы только один раз вызывалась
+                    //SaveImage(DrawnTextureToSave, "drawing_result.png");//можно оптимизировать, чтобы только один раз вызывалась
                     Stage2.gameObject.SetActive(false);
                     Transparent.gameObject.SetActive(false);
                     PaperBackground.gameObject.SetActive(false); PaperBackgroundTop.gameObject.SetActive(true);
                     BottomPanel.gameObject.SetActive(false);
 
-                    if (PhotonNetwork.LocalPlayer.ActorNumber != Int32.Parse(targetPlayerActorNumber))//ограничение ввода тому, чей сейчас ход
-                    {
-                        
-                        Stage3.gameObject.SetActive(true);
-                        
-                    }
-                    
 
-                    foreach (Player player in PhotonNetwork.PlayerList)
+
+                    if (PhotonNetwork.LocalPlayer.ActorNumber == Int32.Parse(targetPlayerActorNumber))//ограничение ввода тому, чей сейчас ход
+                    {
+                        //SendingImage(DrawnTextureToSave.EncodeToPNG());
+                        photonView.RPC("SendingImage", RpcTarget.All, DrawnTextureToSave.EncodeToPNG());
+                        Stage3.gameObject.SetActive(true);
+                        Debug.LogFormat("Your Actor number equal TargPlayer: {0}", Int32.Parse(targetPlayerActorNumber));
+                    }
+                    else if (PhotonNetwork.LocalPlayer.ActorNumber != Int32.Parse(targetPlayerActorNumber))
+                    {
+                        Stage3.gameObject.SetActive(true);
+                        Debug.LogFormat("Your Actor number {1} not equal targetPlayer id: {0}", Int32.Parse(targetPlayerActorNumber), PhotonNetwork.LocalPlayer.ActorNumber);
+
+                    }
+
+
+                        foreach (Player player in PhotonNetwork.PlayerList)
                     {
                         
                         //ShuffledPlayers.Add(player.ActorNumber.ToString()); //добавляем id игроков в список
@@ -646,8 +655,7 @@ namespace Photon.Pun.Demo.Asteroids
                         {
                             reseivedText.text = player.CustomProperties["InputData"].ToString();
                             Debug.LogFormat("Share (received) is: {0}", reseivedText.text);
-                            //SendingImage(DrawnTextureToSave.EncodeToPNG());
-                            photonView.RPC("SendingImage", RpcTarget.All, DrawnTextureToSave.EncodeToPNG());
+                            
                         }
                     }
 
