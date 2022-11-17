@@ -654,6 +654,11 @@ namespace Photon.Pun.Demo.Asteroids
                         if (player.ActorNumber == Int32.Parse(targetPlayerActorNumber))
                         {
                             reseivedText.text = player.CustomProperties["InputData"].ToString();
+
+                            if(reseivedText.text == "")
+                            {
+                                reseivedText.text = "No answer :(";
+                            }
                             Debug.LogFormat("Share (received) is: {0}", reseivedText.text);
                             
                         }

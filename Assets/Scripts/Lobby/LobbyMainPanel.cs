@@ -3,6 +3,7 @@ using Photon.Realtime;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 
 namespace Photon.Pun.Demo.Asteroids
@@ -45,7 +46,12 @@ namespace Photon.Pun.Demo.Asteroids
         private Dictionary<string, GameObject> roomListEntries;
         private Dictionary<int, GameObject> playerListEntries;
 
+        public Text GamemodeName;
+        List<string> Gamemodelist = new ModeSwitching().GamemodeList;       //Импорт списка "простых" названий режимов игры
+        
+        
         #region UNITY
+
 
         public void Awake()
         {
@@ -291,8 +297,31 @@ namespace Photon.Pun.Demo.Asteroids
         {
             PhotonNetwork.CurrentRoom.IsOpen = false;
             PhotonNetwork.CurrentRoom.IsVisible = false;
+            string Name = GamemodeName.text;
 
-            PhotonNetwork.LoadLevel("GameScene1");
+            if (Name == "<Random Game>")
+            {
+                Name = Gamemodelist[Random.Range(1, Gamemodelist.Count - 1)];
+                Debug.LogFormat("Randomly picked gamemode: {0}", Name);
+            }
+
+            switch (Name)
+                {
+                    case "Guess the theme":
+                        PhotonNetwork.LoadLevel("GameScene1");
+                        break;
+                    case "Animal analyzing":
+                        PhotonNetwork.LoadLevel("GameScene1");
+                        break;
+                    case "Suspicious inspectors":
+                        PhotonNetwork.LoadLevel("GameScene1");
+                        break;
+                    case "Cooking Time":
+                        PhotonNetwork.LoadLevel("GameScene_CookingTime");
+                        break;
+                }
+
+
         }
 
         #endregion
