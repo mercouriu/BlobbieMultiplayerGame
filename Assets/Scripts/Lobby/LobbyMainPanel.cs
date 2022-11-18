@@ -51,6 +51,7 @@ namespace Photon.Pun.Demo.Asteroids
 
         private bool IsAbleToUseButtons = true;
         public AudioSource PageTurnWaw;
+        public AudioSource BackMusic;
 
         public Text GamemodeName;
         List<string> Gamemodelist = new ModeSwitching().GamemodeList;       //Импорт списка "простых" названий режимов игры
@@ -67,6 +68,7 @@ namespace Photon.Pun.Demo.Asteroids
             CreateRoomUIScr.localPosition = new Vector2(0, -2000);
             
             LoginPanel.SetActive(true);
+            //BackMusic.Play();
         }
 
         public void Awake()
