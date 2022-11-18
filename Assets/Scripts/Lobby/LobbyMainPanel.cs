@@ -1,9 +1,11 @@
 ﻿using ExitGames.Client.Photon;
 using Photon.Realtime;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 
 namespace Photon.Pun.Demo.Asteroids
@@ -26,9 +28,10 @@ namespace Photon.Pun.Demo.Asteroids
         public InputField MaxPlayersInputField;
         public GameObject ErrorCreateRoomFields;
 
-        [Header("Join Random Room Panel")]
+        [Header("Join Room Panel")]
         public GameObject JoinRandomRoomPanel;
         public InputField joinInput;
+        public GameObject JoinRoomError;
 
         [Header("Room List Panel")]
         public GameObject RoomListPanel;
@@ -46,12 +49,25 @@ namespace Photon.Pun.Demo.Asteroids
         private Dictionary<string, GameObject> roomListEntries;
         private Dictionary<int, GameObject> playerListEntries;
 
+        private bool IsAbleToUseButtons = true;
+        public AudioSource PageTurnWaw;
+
         public Text GamemodeName;
         List<string> Gamemodelist = new ModeSwitching().GamemodeList;       //Импорт списка "простых" названий режимов игры
-        
-        
+
+        public Transform LoginUIScr;
+        public Transform SelectJoinUIScr;
+        public Transform CreateRoomUIScr;
+
         #region UNITY
 
+        public void Start()
+        {
+            SelectJoinUIScr.localPosition = new Vector2(0, 2000);
+            CreateRoomUIScr.localPosition = new Vector2(0, -2000);
+            
+            LoginPanel.SetActive(true);
+        }
 
         public void Awake()
         {
@@ -64,6 +80,18 @@ namespace Photon.Pun.Demo.Asteroids
         }
 
         #endregion
+        
+        IEnumerator UITimeDelay()
+        {
+            yield return new WaitForSeconds(2f);
+            IsAbleToUseButtons = true;
+        }
+
+        IEnumerator UITimeDelayShort()
+        {
+            yield return new WaitForSeconds(0.9f);
+            IsAbleToUseButtons = true;
+        }
 
         #region PUN CALLBACKS
 
@@ -97,11 +125,13 @@ namespace Photon.Pun.Demo.Asteroids
         public override void OnCreateRoomFailed(short returnCode, string message)
         {
             SetActivePanel(SelectionPanel.name);
+            
         }
 
         public override void OnJoinRoomFailed(short returnCode, string message)
         {
-            SetActivePanel(SelectionPanel.name);
+            //SetActivePanel(SelectionPanel.name);
+            JoinRoomError.SetActive(true);
         }
 
         public override void OnJoinRandomFailed(short returnCode, string message)
@@ -115,8 +145,13 @@ namespace Photon.Pun.Demo.Asteroids
 
         public override void OnJoinedRoom()
         {
+            InsideRoomPanel.SetActive(true);
+            CreateRoomUIScr.LeanMoveLocalX(-2000, 0.9f).setEaseOutExpo();
+            SelectJoinUIScr.LeanMoveLocalY(2000, 0.9f).setEaseOutExpo();
+            InsideRoomPanel.LeanMoveLocalX(0, 0.9f).setEaseOutExpo();
+            PageTurnWaw.Play();
 
-            SetActivePanel(InsideRoomPanel.name);
+            //SetActivePanel(InsideRoomPanel.name);
 
             if (playerListEntries == null)
             {
@@ -213,74 +248,141 @@ namespace Photon.Pun.Demo.Asteroids
 
         #region UI CALLBACKS
 
-        public void OnBackButtonClicked()
+        public void OnBackButtonClicked()                                                       //При нажатии на кнопку Cancel
         {
-            if (PhotonNetwork.InLobby)
+            if (IsAbleToUseButtons)
             {
-                PhotonNetwork.LeaveLobby();
-            }
+                if (PhotonNetwork.InLobby)
+                {
+                    PhotonNetwork.LeaveLobby();
+                }
 
-            SetActivePanel(SelectionPanel.name);
+                ErrorCreateRoomFields.SetActive(false);
+
+                //SetActivePanel(SelectionPanel.name);
+                SelectionPanel.SetActive(true);
+                CreateRoomUIScr.LeanMoveLocalY(-2000, 0.9f).setEaseOutExpo();
+                SelectJoinUIScr.LeanMoveLocalY(0, 0.9f).setEaseOutExpo();
+                PageTurnWaw.Play();
+
+                IsAbleToUseButtons = false;
+                StartCoroutine(UITimeDelayShort());
+                
+                
+            }
+            
         }
 
         public void OnCreateRoomButtonClicked()
         {
-            string roomName = RoomNameInputField.text;
-            roomName = (roomName.Equals(string.Empty)) ? "Room " + Random.Range(1000, 10000) : roomName;
+            if (IsAbleToUseButtons)
+            {
+                string roomName = RoomNameInputField.text;
+                roomName = (roomName.Equals(string.Empty)) ? "Room " + Random.Range(1000, 10000) : roomName;
 
-            byte maxPlayers;
-            byte.TryParse(MaxPlayersInputField.text, out maxPlayers);
-            maxPlayers = (byte) Mathf.Clamp(maxPlayers, 2, 8);
+                byte maxPlayers;
+                byte.TryParse(MaxPlayersInputField.text, out maxPlayers);
+                maxPlayers = (byte)Mathf.Clamp(maxPlayers, 2, 8);
 
-            RoomOptions options = new RoomOptions {MaxPlayers = maxPlayers, PlayerTtl = 10000 };
-            if (RoomNameInputField.text == "")
-            {
-                ErrorCreateRoomFields.SetActive(true);
-                return;
+                RoomOptions options = new RoomOptions { MaxPlayers = maxPlayers, PlayerTtl = 10000 };
+                if (RoomNameInputField.text == "")
+                {
+                    ErrorCreateRoomFields.SetActive(true);
+                    return;
+                }
+                else if (maxPlayers > 8 || maxPlayers < 2 || MaxPlayersInputField.text == "")
+                {
+                    ErrorCreateRoomFields.SetActive(true);
+                    return;
+                }
+                else
+                {
+                    PhotonNetwork.CreateRoom(roomName, options, null);
+                    ErrorCreateRoomFields.SetActive(false);
+
+
+
+
+                    InsideRoomPanel.SetActive(true);                                                //При нажатии на кнопку Create
+                    CreateRoomUIScr.LeanMoveLocalX(-2000, 0.9f).setEaseOutExpo();
+                    SelectJoinUIScr.LeanMoveLocalY(2000, 0.9f).setEaseOutExpo();
+                    InsideRoomPanel.LeanMoveLocalX(0, 0.9f).setEaseOutExpo();
+
+
+                }
+
+                IsAbleToUseButtons = false;
+                StartCoroutine(UITimeDelayShort());
             }
-            else if ( maxPlayers > 8 || maxPlayers < 2 || MaxPlayersInputField.text == "")
-            {
-                ErrorCreateRoomFields.SetActive(true);
-                return;
-            }
-            else 
-            {
-                PhotonNetwork.CreateRoom(roomName, options, null);
-                ErrorCreateRoomFields.SetActive(false);
-                
-            }
+
+
+
+            
 
 
             
         }
 
-        public void OnJoinRandomRoomButtonClicked()
+        public void OnJoinRoomButtonClicked()                                                   //При нажатии на кнопку Join
         {
-            SetActivePanel(JoinRandomRoomPanel.name);
+            //SetActivePanel(JoinRandomRoomPanel.name);
 
+            JoinRoomError.SetActive(true);
             PhotonNetwork.JoinRoom(joinInput.text);
         }
 
         public void OnLeaveGameButtonClicked()
         {
-            PhotonNetwork.LeaveRoom();
+            
+
+            if (IsAbleToUseButtons)
+            {
+                PhotonNetwork.LeaveRoom();
+                CreateRoomPanel.SetActive(true);
+                InsideRoomPanel.SetActive(false);
+
+                SelectJoinUIScr.LeanMoveLocalY(0, 0.9f).setEaseOutExpo();
+                PageTurnWaw.Play();
+
+                IsAbleToUseButtons = false;
+                StartCoroutine(UITimeDelayShort());
+
+            }
+
         }
 
         public void OnLoginButtonClicked()
         {
             string playerName = PlayerNameInput.text;
 
-            if (!playerName.Equals(""))
+            if (IsAbleToUseButtons)
             {
-                PhotonNetwork.LocalPlayer.NickName = playerName;
-                PhotonNetwork.ConnectUsingSettings();
-                ErrorName.SetActive(false);
+                if (!playerName.Equals(""))
+                {
+                    PhotonNetwork.LocalPlayer.NickName = playerName;
+                    PhotonNetwork.ConnectUsingSettings();
+                    ErrorName.SetActive(false);
+
+                    PageTurnWaw.Play();
+                    LoginUIScr.LeanMoveLocalY(-2000, 0.9f).setEaseOutExpo();             //При нажатии на кнопку Login
+                    SelectJoinUIScr.LeanMoveLocalY(0, 0.9f).setEaseOutExpo();
+                    SelectionPanel.SetActive(true);
+
+                }
+                else
+                {
+                    Debug.LogError("Player Name is invalid.");
+                    ErrorName.SetActive(true);
+                }
+
+
+                IsAbleToUseButtons = false;
+                StartCoroutine(UITimeDelayShort());
+
             }
-            else
-            {
-                Debug.LogError("Player Name is invalid.");
-                ErrorName.SetActive(true);
-            }
+
+
+            
         }
 
         public void OnRoomListButtonClicked()
@@ -298,6 +400,7 @@ namespace Photon.Pun.Demo.Asteroids
             PhotonNetwork.CurrentRoom.IsOpen = false;
             PhotonNetwork.CurrentRoom.IsVisible = false;
             string Name = GamemodeName.text;
+
 
             if (Name == "<Random Game>")
             {
@@ -370,11 +473,14 @@ namespace Photon.Pun.Demo.Asteroids
         private void SetActivePanel(string activePanel)
         {
             LoginPanel.SetActive(activePanel.Equals(LoginPanel.name));
-            SelectionPanel.SetActive(activePanel.Equals(SelectionPanel.name));
-            CreateRoomPanel.SetActive(activePanel.Equals(CreateRoomPanel.name));
-            JoinRandomRoomPanel.SetActive(activePanel.Equals(JoinRandomRoomPanel.name));
-            RoomListPanel.SetActive(activePanel.Equals(RoomListPanel.name));    // UI should call OnRoomListButtonClicked() to activate this
-            InsideRoomPanel.SetActive(activePanel.Equals(InsideRoomPanel.name));
+            //SelectionPanel.SetActive(activePanel.Equals(SelectionPanel.name));
+            //CreateRoomPanel.SetActive(activePanel.Equals(\
+            //
+            //
+            //Panel.name));
+            //JoinRandomRoomPanel.SetActive(activePanel.Equals(JoinRandomRoomPanel.name));
+            //RoomListPanel.SetActive(activePanel.Equals(RoomListPanel.name));    // UI should call OnRoomListButtonClicked() to activate this
+            //InsideRoomPanel.SetActive(activePanel.Equals(InsideRoomPanel.name));
         }
 
         private void UpdateCachedRoomList(List<RoomInfo> roomList)
@@ -417,5 +523,47 @@ namespace Photon.Pun.Demo.Asteroids
                 roomListEntries.Add(info.Name, entry);
             }
         }*/
+
+
+        #region UI
+       
+        public void SwitchToRoomCreating()
+        {
+            if (IsAbleToUseButtons)
+            {
+                CreateRoomUIScr.localPosition = new Vector2(0, -2000);
+
+                CreateRoomPanel.SetActive(true);
+                CreateRoomUIScr.LeanMoveLocalY(100, 0.9f).setEaseOutExpo();
+                SelectJoinUIScr.LeanMoveLocalY(1650, 0.9f).setEaseOutExpo();
+
+                JoinRoomError.SetActive(false);
+                PageTurnWaw.Play();
+
+                IsAbleToUseButtons = false;
+                StartCoroutine(UITimeDelayShort());
+
+            }
+            
+        }
+
+        public void SwitchToCancelCreating()
+        {
+            if (IsAbleToUseButtons)
+            {
+
+                IsAbleToUseButtons = false;
+                StartCoroutine(UITimeDelay());
+
+            }
+
+
+        }
+
+
+        #endregion
+
+
+
     }
 }

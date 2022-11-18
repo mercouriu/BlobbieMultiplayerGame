@@ -8,6 +8,7 @@ public class ModeSwitching : MonoBehaviour
     public Text GamemodeName;
     public Button NextModeButton;
     public Button PrevModeButton;
+    public AudioSource WawSwitching;
 
     private int GamemodeNumInList = 0;
 
@@ -29,7 +30,7 @@ public class ModeSwitching : MonoBehaviour
                 GamemodeNumInList++;
             }
 
-            
+            WawSwitching.Play();
             GamemodeName.text = GamemodeList[GamemodeNumInList];
         });
 
@@ -44,6 +45,7 @@ public class ModeSwitching : MonoBehaviour
                 GamemodeNumInList--;
             }
 
+            WawSwitching.Play();
             GamemodeName.text = GamemodeList[GamemodeNumInList];
         });
 
