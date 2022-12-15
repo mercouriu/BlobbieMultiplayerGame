@@ -25,6 +25,7 @@ namespace Photon.Pun.Demo.Asteroids
         public Image PlayerColorImage;
         public Button PlayerReadyButton;
         public Image PlayerReadyImage;
+        public GameObject PlayerArrowPointer;
 
         private int ownerId;
         private bool isPlayerReady;
@@ -74,6 +75,7 @@ namespace Photon.Pun.Demo.Asteroids
 
         #endregion
 
+
         public void Initialize(int playerId, string playerName)
         {
             ownerId = playerId;
@@ -95,6 +97,8 @@ namespace Photon.Pun.Demo.Asteroids
         {
             PlayerReadyButton.GetComponentInChildren<Text>().text = playerReady ? "Ready!" : "Ready?";
             PlayerReadyImage.enabled = playerReady;
+            //PlayerArrowPointer.SetActive(!playerReady);
+
         }
     }
 }

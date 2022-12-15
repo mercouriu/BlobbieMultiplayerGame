@@ -14,6 +14,7 @@ namespace Photon.Pun.Demo.Asteroids
     {
         [Header("Login Panel")]
         public GameObject LoginPanel;
+        public GameObject ConnectingText;
 
         public InputField PlayerNameInput;
         public GameObject ErrorName;
@@ -82,7 +83,12 @@ namespace Photon.Pun.Demo.Asteroids
         }
 
         #endregion
-        
+        IEnumerator TimeDelay()
+        {
+            yield return new WaitForSeconds(2f);
+            
+        }
+
         IEnumerator UITimeDelay()
         {
             yield return new WaitForSeconds(2f);
@@ -96,7 +102,14 @@ namespace Photon.Pun.Demo.Asteroids
         }
 
         #region PUN CALLBACKS
+        public override void OnConnected()
+        {
+            base.OnConnected();
+            SelectJoinUIScr.LeanMoveLocalY(0, 0.9f).setEaseOutExpo();
+            SelectionPanel.SetActive(true);
+            ConnectingText.SetActive(false);
 
+        }
         public override void OnConnectedToMaster()
         {
             this.SetActivePanel(SelectionPanel.name);
@@ -197,6 +210,7 @@ namespace Photon.Pun.Demo.Asteroids
             playerListEntries.Clear();
             playerListEntries = null;
         }
+
 
         public override void OnPlayerEnteredRoom(Player newPlayer)
         {
@@ -328,9 +342,9 @@ namespace Photon.Pun.Demo.Asteroids
         public void OnJoinRoomButtonClicked()                                                   //При нажатии на кнопку Join
         {
             //SetActivePanel(JoinRandomRoomPanel.name);
-
-            JoinRoomError.SetActive(true);
+            
             PhotonNetwork.JoinRoom(joinInput.text);
+
         }
 
         public void OnLeaveGameButtonClicked()
@@ -366,9 +380,9 @@ namespace Photon.Pun.Demo.Asteroids
                     ErrorName.SetActive(false);
 
                     PageTurnWaw.Play();
+                    ConnectingText.SetActive(true);
                     LoginUIScr.LeanMoveLocalY(-2000, 0.9f).setEaseOutExpo();             //При нажатии на кнопку Login
-                    SelectJoinUIScr.LeanMoveLocalY(0, 0.9f).setEaseOutExpo();
-                    SelectionPanel.SetActive(true);
+                    
 
                 }
                 else
